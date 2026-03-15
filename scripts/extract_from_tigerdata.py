@@ -19,11 +19,7 @@ SQL_DIR = ROOT / "data" / "sql"
 sys.path.insert(0, str(ROOT))
 
 from config import (
-    CLEANED_DIR,
-    ELECTRICITY_CSV,
-    HUMIDITY_CSV,
-    TEMPERATURE_CSV,
-    WEATHER_CSV,
+    RAW_DIR,
     TIGERDATA_URL,
     DEVICE_ID,
     TIGERDATA_REF_ELEC,
@@ -64,8 +60,8 @@ def _run_sql(url: str, sql_path: Path, params: dict) -> pd.DataFrame:
 
 
 def extract_elec(out_path: Path = None) -> Path:
-    """Run data/sql/elec.sql; write electricity.csv (timestamp, kwh)."""
-    out_path = out_path or ELECTRICITY_CSV
+    """Run data/sql/elec.sql; write electricity.csv (timestamp, kwh) to data/raw/."""
+    out_path = out_path or RAW_DIR / "electricity.csv"
     ref = TIGERDATA_REF_ELEC or DEVICE_ID
     if not ref:
         raise ValueError("Set TIGERDATA_REF_ELEC or DEVICE_ID for elec extraction.")
@@ -74,27 +70,27 @@ def extract_elec(out_path: Path = None) -> Path:
     # Pipeline expects timestamp, kwh; ensure order
     if "timestamp" in df.columns and "kwh" in df.columns:
         df = df[["timestamp", "kwh"]]
-    CLEANED_DIR.mkdir(parents=True, exist_ok=True)
+    RAW_DIR.mkdir(parents=True, exist_ok=True)
     df.to_csv(out_path, index=False)
     return out_path
 
 
 def extract_internal_temperature(out_path: Path = None) -> Path:
-    """Run data/sql/internal_temperature.sql; write internal_temp.csv (timestamp, temperature_celsius)."""
-    out_path = out_path or TEMPERATURE_CSV
+    """Run data/sql/internal_temperature.sql; write internal_temp.csv to data/raw/."""
+    out_path = out_path or RAW_DIR / "internal_temp.csv"
     ref = TIGERDATA_REF_INT_TEMP or DEVICE_ID
     if not ref:
         raise ValueError("Set TIGERDATA_REF_INT_TEMP or DEVICE_ID for temperature extraction.")
 
     df = _run_sql(get_connection_url(), SQL_DIR / "internal_temperature.sql", {"itish_int_temp": ref})
-    CLEANED_DIR.mkdir(parents=True, exist_ok=True)
+    RAW_DIR.mkdir(parents=True, exist_ok=True)
     df.to_csv(out_path, index=False)
     return out_path
 
 
 def extract_humidity(out_path: Path = None) -> Path:
-    """Run data/sql/humidity.sql if present; write humidity.csv (timestamp, humidity_percent)."""
-    out_path = out_path or HUMIDITY_CSV
+    """Run data/sql/humidity.sql if present; write humidity.csv to data/raw/."""
+    out_path = out_path or RAW_DIR / "humidity.csv"
     sql_path = SQL_DIR / "humidity.sql"
     if not sql_path.exists():
         raise FileNotFoundError(f"No {sql_path}; add SQL or skip humidity.")
@@ -105,20 +101,20 @@ def extract_humidity(out_path: Path = None) -> Path:
     # Use same param name as other SQLs; if your humidity.sql uses :device_id, add a branch or edit here
     params = {"itish_humidity": ref}
     df = _run_sql(get_connection_url(), sql_path, params)
-    CLEANED_DIR.mkdir(parents=True, exist_ok=True)
+    RAW_DIR.mkdir(parents=True, exist_ok=True)
     df.to_csv(out_path, index=False)
     return out_path
 
 
 def extract_weather(out_path: Path = None) -> Path:
-    """Run data/sql/weather_observations.sql; write weather.csv."""
-    out_path = out_path or WEATHER_CSV
+    """Run data/sql/weather_observations.sql; write weather.csv to data/raw/."""
+    out_path = out_path or RAW_DIR / "weather.csv"
     district = POSTCODE_DISTRICT
     if not district:
         raise ValueError("Set POSTCODE_DISTRICT for weather extraction.")
 
     df = _run_sql(get_connection_url(), SQL_DIR / "weather_observations.sql", {"postcode_district": district})
-    CLEANED_DIR.mkdir(parents=True, exist_ok=True)
+    RAW_DIR.mkdir(parents=True, exist_ok=True)
     df.to_csv(out_path, index=False)
     return out_path
 

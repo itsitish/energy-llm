@@ -53,9 +53,8 @@ def load_temperature(path: Path) -> pd.Series:
 def load_weather(path: Path) -> pd.DataFrame:
     """
     Load external weather (hourly). Returns DataFrame with timestamp index
-    and cols: temperature_celsius, humidity_percent, precipitation_mm, wind_speed_kmh,
-    cloud_cover_percent, solar_energy_mj, solar_radiation_w, heat_index_celsius,
-    wind_chill_celsius, snow_depth_mm.
+    and cols: temperature_celsius, humidity_percent, etc.
+    Drops NaT and duplicate timestamps so resample/reindex work.
     """
     if not path.exists():
         return pd.DataFrame()
@@ -63,7 +62,8 @@ def load_weather(path: Path) -> pd.DataFrame:
     ts_col = "timestamp" if "timestamp" in df.columns else "time"
     if ts_col not in df.columns:
         ts_col = df.columns[0]
-    df["ts"] = pd.to_datetime(df[ts_col])
+    df["ts"] = pd.to_datetime(df[ts_col], errors="coerce")
+    df = df.dropna(subset=["ts"]).drop_duplicates(subset=["ts"], keep="first")
     return df.set_index("ts").sort_index()
 
 
