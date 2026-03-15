@@ -21,7 +21,7 @@ TABLE_NAME = os.environ.get("DYNAMODB_HUMIDITY_TABLE", "CadReading")
 REGION = os.environ.get("AWS_REGION", "eu-west-2")
 # Partition key value for this device's humidity (LocationId:Commodity)
 PK_VALUE = os.environ.get("DYNAMODB_HUMIDITY_PK", "53f09efc-2c99-44b0-8392-5540766e7048:humidity")
-OUTPUT_CSV = Path(__file__).resolve().parent.parent / "data" / "cleaned" / "humidity.csv"
+OUTPUT_CSV = Path(__file__).resolve().parent.parent / "data" / "raw" / "humidity.csv"
 
 def _float_val(v):
     """Convert DynamoDB Number (Decimal) or float to float."""

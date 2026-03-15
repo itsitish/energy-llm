@@ -38,14 +38,14 @@ def _resample_sum_hourly(series: pd.Series) -> pd.Series:
     """Resample a series to hourly using sum, preserving NaN for empty hours."""
     if series.empty:
         return series
-    return series.resample("1h").sum(min_count=1)
+    return series.resample("60min").sum(min_count=1)
 
 
 def _resample_mean_hourly(series: pd.Series) -> pd.Series:
     """Resample a series to hourly using mean."""
     if series.empty:
         return series
-    return series.resample("1h").mean()
+    return series.resample("60min").mean()
 
 
 def build_hourly_dataset(
@@ -80,9 +80,8 @@ def build_hourly_dataset(
     temp_h = _resample_mean_hourly(temp)
 
     if not weather.empty:
-        weather_h = weather.resample("1h").mean()
-    else:
-        weather_h = weather
+        weather = weather.loc[weather.index.notna()]
+    weather_h = weather.resample("60min").mean() if not weather.empty else weather
 
     # Build a unified hourly index from all pieces
     indexes = [

@@ -1,4 +1,4 @@
-"""Paths and options. Point these at your clean CSVs in data/cleaned/."""
+"""Paths and options. Raw (mixed resolution) in data/raw/; cleaned (half-hourly) in data/cleaned/."""
 import os
 from pathlib import Path
 
@@ -7,9 +7,9 @@ RAW_DIR = ROOT / "data" / "raw"
 CLEANED_DIR = ROOT / "data" / "cleaned"
 DATA_DIR = CLEANED_DIR
 
-# Time-series CSVs in data/cleaned (timestamp + value column each)
-ELECTRICITY_CSV = CLEANED_DIR / "electricity.csv"   # half-hourly: timestamp, kwh
-GAS_CSV = CLEANED_DIR / "gas.csv"                   # half-hourly: timestamp, kwh
+# Pipeline reads from cleaned (all half-hourly after run_clean_to_halfhourly)
+ELECTRICITY_CSV = CLEANED_DIR / "electricity.csv"   # timestamp, kwh
+GAS_CSV = CLEANED_DIR / "gas.csv"                   # timestamp, kwh
 HUMIDITY_CSV = CLEANED_DIR / "humidity.csv"         # timestamp, humidity_percent
 TEMPERATURE_CSV = CLEANED_DIR / "internal_temp.csv" # timestamp, temperature_celsius
 WEATHER_CSV = CLEANED_DIR / "weather.csv"           # timestamp + weather columns
