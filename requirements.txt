@@ -1,0 +1,11 @@
+# energy-llm
+pandas>=2.0
+numpy>=1.24
+# LLM (notebooks/llm.ipynb)
+torch>=2.0
+transformers>=4.36
+accelerate>=0.25
+ipywidgets>=8.0
+plotly>=5.0
+# DynamoDB export (scripts/export_humidity_from_dynamo.py)
+boto3>=1.28
