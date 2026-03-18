@@ -37,9 +37,9 @@ def _load_weather(path: Path) -> pd.DataFrame:
     if not path.exists():
         return pd.DataFrame()
     df = pd.read_csv(path)
-    ts_col = "timestamp" if "timestamp" in df.columns else df.columns[0]
+    ts_col = next((c for c in ["timestamp", "ts", "date", "datetime", "time"] if c in df.columns), df.columns[0])
     df["ts"] = pd.to_datetime(df[ts_col], utc=True)
-    df = df.drop_duplicates(subset=["ts"], keep="first").set_index("ts").sort_index()
+    df = df.drop(columns=[ts_col], errors="ignore").drop_duplicates(subset=["ts"], keep="first").set_index("ts").sort_index()
     for c in df.select_dtypes(include=["object"]).columns:
         df[c] = pd.to_numeric(df[c], errors="coerce")
     return df
@@ -96,7 +96,7 @@ def clean_internal_temp(raw_path: Path = RAW_INTERNAL_TEMP, out_path: Path = Non
 
 
 def clean_weather(raw_path: Path = RAW_WEATHER, out_path: Path = None) -> Path:
-    """Resample to 30T (mean), dedupe, fill gaps with ffill (weather varies slowly)."""
+    """Resample to 30T (mean), dedupe, fill gaps with ffill. Output: timestamp + weather cols only."""
     out_path = out_path or CLEANED_DIR / "weather.csv"
     df = _load_weather(raw_path)
     if df.empty:
@@ -104,7 +104,9 @@ def clean_weather(raw_path: Path = RAW_WEATHER, out_path: Path = None) -> Path:
     halfhourly = df.resample(FREQ).mean()
     halfhourly = halfhourly.ffill().bfill()
     CLEANED_DIR.mkdir(parents=True, exist_ok=True)
-    halfhourly.reset_index().to_csv(out_path, index=False)
+    out = halfhourly.reset_index()
+    out = out.rename(columns={"ts": "timestamp"})
+    out.to_csv(out_path, index=False)
     return out_path
 
 

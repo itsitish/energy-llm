@@ -15,7 +15,10 @@ TEMPERATURE_CSV = CLEANED_DIR / "internal_temp.csv" # timestamp, temperature_cel
 WEATHER_CSV = CLEANED_DIR / "weather.csv"           # timestamp + weather columns
 
 # Static home profile: cooking/heating/hot_water 1=elec 0=gas; evs/solar/heat_pump/battery 1=have 0=don't; elec_eac/gas_eac=est. annual consumption
-HOME_PROFILE_CSV = ROOT / "data" / "raw" / "home_profile.csv"
+HOME_PROFILE_CSV = CLEANED_DIR / "home_profile.csv"
+# Backwards-compatible fallback if the cleaned file isn't present.
+if not HOME_PROFILE_CSV.exists():
+    HOME_PROFILE_CSV = RAW_DIR / "home_profile.csv"
 
 # Tigerdata extraction: set TIGERDATA_URL + refs below; script runs data/sql/*.sql
 TIGERDATA_URL = os.environ.get("TIGERDATA_URL", "")  # e.g. postgresql://user:pass@host/db

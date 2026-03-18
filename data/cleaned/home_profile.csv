@@ -1,0 +1,2 @@
+property_type,num_people,num_bedrooms,cooking_type_fuel,heating_type_fuel,hot_water_fuel,evs,solar_panels,heat_pump,battery,elec_estimated_annual_consumption,gas_estimated_annual_consumption
+apartment,2,2,elec,elec,elec,No,No,No,No,2518,8721

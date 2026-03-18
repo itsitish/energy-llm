@@ -1,5 +1,5 @@
 """
-Extract data from Tigerdata using SQL files in data/sql/; write CSVs to data/cleaned/.
+Extract data from Tigerdata using SQL files in data/sql/; write raw CSVs to data/raw/.
 
 Requires: TIGERDATA_URL (e.g. postgresql://user:pass@host/db).
 Optional env: TIGERDATA_REF_ELEC, TIGERDATA_REF_INT_TEMP, TIGERDATA_REF_HUMIDITY, POSTCODE_DISTRICT.
