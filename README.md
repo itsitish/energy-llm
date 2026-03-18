@@ -55,6 +55,16 @@ After any extract, run `python scripts/run_clean_to_halfhourly.py`.
 - **Full flow** (insights + LLM Q&A, plots): open `notebooks/llm.ipynb`, run all (auto-cleans if needed → builds insights/context → runs golden evals → plots → model → interactive Q&A).
   - Note: the notebook reads **cleaned half-hourly CSVs directly**; it does not build an hourly dataset.
 
+### `notebooks/llm.ipynb` in one glance
+
+The notebook is the single end-to-end entry point for recruiters/jobs:
+
+- Loads/auto-creates `data/cleaned/*.csv` if missing
+- Builds `insight_text` using electricity + indoor temp + indoor humidity + external weather + `data/cleaned/home_profile.csv`
+- Runs **golden evals** (`evals/golden_qa.jsonl`) before letting you ask questions
+- Shows sanity-check Plotly charts (including `Cost (£)` under your tariff)
+- Starts an interactive Q&A UI that enforces a strict grounded output format
+
 ---
 ## Tariff configuration (notebook)
 

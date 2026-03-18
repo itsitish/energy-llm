@@ -33,7 +33,6 @@ Thumbs.db
 
 # Data
 data/raw
-data/sql
 
 # Logs and temp
 *.log
