@@ -32,7 +32,8 @@ Thumbs.db
 *.pem
 
 # Data
-*.csv
+data/raw
+data/sql
 
 # Logs and temp
 *.log

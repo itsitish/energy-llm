@@ -25,7 +25,8 @@ def load_hh_series(path: Path, value_col: str = "kwh") -> pd.Series:
     if val_col not in df.columns:
         val_col = df.columns[1]
 
-    df["ts"] = pd.to_datetime(df[ts_col])
+    # Keep timestamps parseable across sources; upstream cleaning uses UTC.
+    df["ts"] = pd.to_datetime(df[ts_col], errors="coerce", utc=True)
     df = df.set_index("ts").sort_index()
     return df[val_col].astype(float)
 
@@ -62,7 +63,8 @@ def load_weather(path: Path) -> pd.DataFrame:
     ts_col = "timestamp" if "timestamp" in df.columns else "time"
     if ts_col not in df.columns:
         ts_col = df.columns[0]
-    df["ts"] = pd.to_datetime(df[ts_col], errors="coerce")
+    # Weather can arrive with mixed/invalid timestamps; coerce + drop NaT.
+    df["ts"] = pd.to_datetime(df[ts_col], errors="coerce", utc=True)
     df = df.dropna(subset=["ts"]).drop_duplicates(subset=["ts"], keep="first")
     return df.set_index("ts").sort_index()
 

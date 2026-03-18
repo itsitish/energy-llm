@@ -1,6 +1,6 @@
 # energy-llm
 
-AI-powered energy advisor: turn household usage data (electricity, temp, humidity, weather) into structured insights and natural-language answers via a local LLM.
+AI-powered energy advisor: turn household usage + device profile data (electricity, temp, humidity, weather, home device fuels) into structured insights and natural-language answers via a local LLM.
 
 ---
 
@@ -12,8 +12,7 @@ AI-powered energy advisor: turn household usage data (electricity, temp, humidit
 | **Config** | `config.py` – paths for CSVs, Tigerdata/DynamoDB env vars |
 | **Loaders** | `data/loaders.py` – load elec, gas, humidity, temp, weather, home profile from CSV |
 | **Clean** | `data/clean_to_halfhourly.py` – resample to 30min, dedupe, fill gaps (elec=0; temp/hum=interp+ffill; weather=ffill) |
-| **Pipeline** | `pipeline/hourly.py` – build hourly dataset from cleaned CSVs for insights/LLM |
-| **Insights** | `insights/` – peak_usage_times, tariff_recommendation, schedule_suggestion, temperature_summary, humidity_summary |
+| **Insights** | `insights/` – peak_usage_times, tariff_recommendation, schedule_suggestion, temperature_summary, humidity_summary (+ a richer `build_household_context`) |
 | **LLM** | `notebooks/llm.ipynb` – load model (Qwen2.5-1.5B), format context from insights, interactive Q&A |
 | **Scripts** | Extract from Tigerdata or DynamoDB → raw; run clean → cleaned |
 
@@ -33,7 +32,7 @@ Optional: `sqlalchemy` + `psycopg2-binary` for Tigerdata; AWS profile for Dynamo
 
 1. **Raw** (`data/raw/`): electricity (half-hourly), humidity (minutely), internal_temp, weather (hourly). Put CSVs here or pull via scripts.
 2. **Clean**: `python scripts/run_clean_to_halfhourly.py` → writes half-hourly CSVs to `data/cleaned/`.
-3. **Pipeline** reads `data/cleaned/` (via `config.py`). Insights and notebook use these paths.
+3. **Use**: insights + notebook read `data/cleaned/` (via `config.py`).
 
 ---
 
@@ -51,9 +50,37 @@ After any extract, run `python scripts/run_clean_to_halfhourly.py`.
 
 ## Run
 
-- **Insights only** (peak times, tariff, schedule):  
+- **Insights only** (peak times, tariff, schedule + home-profile implications):  
   `python run_insights.py`
-- **Full flow** (insights + LLM Q&A, plots): open `notebooks/llm.ipynb`, run all. Cell 0 sets path; then build_hourly_dataset, insights, Plotly plots, load model, interactive Q&A.
+- **Full flow** (insights + LLM Q&A, plots): open `notebooks/llm.ipynb`, run all (auto-cleans if needed → builds insights/context → runs golden evals → plots → model → interactive Q&A).
+  - Note: the notebook reads **cleaned half-hourly CSVs directly**; it does not build an hourly dataset.
+
+---
+## Tariff configuration (notebook)
+
+Electricity cost + tariff impact are computed in `notebooks/llm.ipynb` using the `TARIFF` dict in the LLM context cell.
+
+To change time windows, edit:
+- `TARIFF["offpeak_windows"]` (e.g. `["02:00-05:00"]`)
+- `TARIFF["peak_windows"]` (e.g. `["16:00-19:00"]`)
+
+The cost line and the “TARIFF IMPACT” section in the LLM context will update automatically.
+
+---
+## Evals (golden Q&A)
+
+Run a small groundedness/consistency harness over a golden set of questions:
+
+```bash
+python evals/run_evals.py
+```
+
+The eval runner expects the assistant to follow a strict output format:
+- `Answer: ...`
+- `Evidence: ...`
+
+If the answer is not explicitly present in the provided context, it must reply exactly:
+`Not enough data in context to answer.`
 
 ---
 
@@ -65,10 +92,9 @@ data/
   loaders.py           # Load CSVs to Series/DataFrame
   clean_to_halfhourly.py
   raw/                 # Input CSVs (mixed res)
-  cleaned/             # Half-hourly CSVs (pipeline input)
+  cleaned/             # Half-hourly CSVs (pipeline input) + `home_profile.csv`
   sql/                 # Tigerdata: elec, internal_temperature, weather_observations
 insights/              # peaks, tariff, schedules, temperature, humidity
-pipeline/hourly.py     # build_hourly_dataset()
 notebooks/llm.ipynb    # LLM + plots + Q&A
 scripts/
   run_clean_to_halfhourly.py
@@ -84,5 +110,6 @@ requirements.txt
 
 - `RAW_DIR`, `CLEANED_DIR` – data folders.
 - `ELECTRICITY_CSV`, `HUMIDITY_CSV`, `TEMPERATURE_CSV`, `WEATHER_CSV` – point to `data/cleaned/` files.
+- `HOME_PROFILE_CSV` – points to `data/cleaned/home_profile.csv` (device fuels + estimated annual consumption; supports both numeric 1/0 and string labels like `elec`/`gas`).
 - `TIGERDATA_URL`, `DEVICE_ID`, `TIGERDATA_REF_ELEC`, `TIGERDATA_REF_INT_TEMP`, `POSTCODE_DISTRICT` – for Tigerdata.
 - DynamoDB: set via env (`DYNAMODB_HUMIDITY_TABLE`, `DYNAMODB_HUMIDITY_PK`).
