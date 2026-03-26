@@ -45,7 +45,11 @@ Optional: `sqlalchemy` + `psycopg2-binary` for Tigerdata; AWS profile for Dynamo
   `python scripts/export_humidity_from_dynamo.py` → writes `data/raw/humidity.csv`.
 
 After any extract, run `python scripts/run_clean_to_halfhourly.py`.
-
+command for extracting humdity data  - aws sso login --profile genbrain-prod
+export AWS_PROFILE=genbrain-prod
+export AWS_REGION=eu-west-2
+export DYNAMODB_HUMIDITY_TABLE=CadReading
+export DYNAMODB_HUMIDITY_PK="53f09efc-2c99-44b0-8392-5540766e7048:humidity"
 ---
 
 ## Run
